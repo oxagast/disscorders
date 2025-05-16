@@ -3,11 +3,11 @@ import discord
 import time as t
 from discord.ext import commands
 
-'Setup Credentials'
+# Setup Credentials
 BOT_TOKEN = 'Bot_Token_Here'
 
 
-'Setup'
+# Setup
 intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
