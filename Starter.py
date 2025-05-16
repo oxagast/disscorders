@@ -17,7 +17,7 @@ bot = commands.Bot(command_prefix='/', intents=intents)
 async def on_ready():
     print(f'Bot is ready. Logged in as {bot.user}')
 
-'Commands'
+# Commands
 @bot.command(name=ping)
 async def ping(ctx):
     latency = bot.latency * 1000  # Convert to ms
