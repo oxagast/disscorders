@@ -8,7 +8,7 @@ BOT_TOKEN = 'Bot_Token_Here'
 
 
 # Setup
-intents = discord.Intents.default()
+intents = discord.Intents.all()
 intents.message_content = True
 intents.members = True
 
