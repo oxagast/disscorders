@@ -18,7 +18,7 @@ async def on_ready():
     print(f'Bot is ready. Logged in as {bot.user}')
 
 # Commands
-@bot.command(name=ping)
+@bot.command(name='ping')
 async def ping(ctx):
     latency = bot.latency * 1000  # Convert to ms
     await ctx.send(f'Pong! `{latency:.2f}ms`')
