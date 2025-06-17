@@ -1,26 +1,26 @@
 import os
 import discord
 import time as t
-from discord.ext import commands
+from discord import app_commands, Interaction, Embed
 
 # Setup Credentials
-BOT_TOKEN = 'Bot_Token_Here'
-
+BOT_TOKEN = 'Bot_Token_Here' # Replace With Bot Token
+GUILD_ID = 12345678912345 # Replace With Your Sever ID
 
 # Setup
 intents = discord.Intents.all()
-intents.message_content = True
-intents.members = True
+client = discord.Client(intents=intents)
+tree = discord.app_commands.CommandTree(client)
 
-bot = commands.Bot(command_prefix='/', intents=intents)
-@bot.event
+@client.event
 async def on_ready():
-    print(f'Bot is ready. Logged in as {bot.user}')
+    print(f"Bot is ready. Logged in as {client.user} (ID: {client.user.id})")
+    await tree.sync(guild=discord.Object(id=GUILD_ID))
 
 # Commands
-@bot.command(name='ping')
-async def ping(ctx):
-    latency = bot.latency * 1000  # Convert to ms
-    await ctx.send(f'Pong! `{latency:.2f}ms`')
+@tree.command(name="ping", description="sends ping of bot", guild=discord.Object(id=GUILD_ID))
+async def ping(interaction: discord.Interaction):
+    latency = client.latency * 1000  # Convert to ms
+    await interaction.response.send_message(f'Pong! `{latency:.2f}ms`', ephemeral=True)
 
-bot.run(BOT_TOKEN)
+client.run(BOT_TOKEN)
