@@ -5,7 +5,6 @@ from discord import app_commands, Interaction, Embed
 
 # Setup Credentials
 BOT_TOKEN = 'Bot_Token_Here' # Replace With Bot Token
-GUILD_ID = 12345678912345 # Replace With Your Sever ID
 
 # Setup
 intents = discord.Intents.all()
