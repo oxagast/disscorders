@@ -17,7 +17,7 @@ async def on_ready():
     print("Syncing commands to guilds")
     for guild in client.guilds:
         await tree.sync(guild=discord.Object(id=guild.id))
-    print(f"Synced commands to guild")
+    print(f"Synced commands to guilds")
 
 # Commands
 @tree.command(name="ping", description="sends ping of bot", guild=discord.Object(id=GUILD_ID))
