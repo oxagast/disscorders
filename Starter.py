@@ -1,12 +1,13 @@
 import os
 import discord
 import time as t
+import configparser
 from discord import app_commands, Interaction, Embed
-
+botconfig = configparser.ConfigParser()
+botconfig.read('conf.ini')
 # Setup Credentials
-BOT_TOKEN = 'Bot_Token_Here' # Replace With Bot Token
-GUILD_ID = 12345678912345 # Replace With Your Sever ID
-
+BOT_TOKEN = botconfig.get('API', 'apitoken')
+GUILD_ID = botconfig.getint('API', 'guildid')
 # Setup
 intents = discord.Intents.all()
 client = discord.Client(intents=intents)
