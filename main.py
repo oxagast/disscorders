@@ -1,13 +1,14 @@
 import os
 import discord
 import time as t
-import configparser
+from dotenv import load_dotenv, dotenv_values
 from discord import app_commands, Interaction, Embed
-botconfig = configparser.ConfigParser()
-botconfig.read('conf.ini')
+
 # Setup Credentials
-BOT_TOKEN = botconfig.get('API', 'apitoken')
-GUILD_ID = botconfig.getint('API', 'guildid')
+load_dotenv()
+BOT_TOKEN = os.getenv("bot_token")
+GUILD_ID = os.getenv("guild_id")
+
 # Setup
 intents = discord.Intents.all()
 client = discord.Client(intents=intents)
