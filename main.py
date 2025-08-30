@@ -36,4 +36,11 @@ async def base64e(interaction: discord.Interaction, message_text: str):
     print(f"Responding to command (eb64).")
     await interaction.response.send_message("Encoded base64: " + b64encoded.decode('utf-8'), ephemeral=True)
 
+@tree.command(name="db64", description="Decodes Base64", guild=discord.Object(id=GUILD_ID))
+async def base64d(interaction: discord.Interaction, message_text: str):
+    data = message_text.encode("utf-8")
+    b64decoded = base64.b64decode(data)
+    print(f"Responding to command (db64).")
+    await interaction.response.send_message("Decoded base64: " + b64decoded.decode('utf-8'), ephemeral=True)
+
 client.run(BOT_TOKEN)
