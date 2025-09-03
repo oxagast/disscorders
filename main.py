@@ -3,6 +3,8 @@ import os
 import discord
 import time as t
 import base64
+import imdb
+from contextlib import suppress
 import configparser
 from discord.ext import commands
 from discord import app_commands, Interaction, Embed
@@ -43,4 +45,29 @@ async def base64d(interaction: discord.Interaction, message_text: str):
     print(f"Responding to command (db64).")
     await interaction.response.send_message("Decoded base64: " + b64decoded.decode('utf-8'), ephemeral=True)
 
+@tree.command(name="imdb", description="Pulls movie info from ImDB", guild=discord.Object(id=GUILD_ID))
+async def imdbmovie(interaction: discord.Interaction, title: str):
+    print(f"Responding to command (imdb).")
+    ia = imdb.IMDb()
+    iasearch = ia.search_movie(title)
+    if iasearch:
+        movie = iasearch[0]
+        ia.update(movie) # Retrieve full details for the movie
+        lnlen = 200
+        try:
+            synopsis = str(movie['synopsis'][0].replace("\n", "")[:lnlen])
+        except Exception:
+            await interaction.response.send_message("Server under heavy load or movie not found!")
+        try:
+            await interaction.response.send_message("ImDB: " + movie['title'] + ": Year " + str(movie['year']) + " - " + synopsis + "...", ephemeral=True)
+        except Exception:
+#            print("Responding to command (imdb) err: movie not found.")
+            await interaction.response.send_message("Server under heavy load or movie not found!")
+    else:
+        await interaction.response.send_message("Server under heavy load or movie not found!")
+
 client.run(BOT_TOKEN)
+
+
+
+
