@@ -4,7 +4,7 @@
 
 ```bash
 git clone https://github.com/oxagast/disscorders.git
-cd minecraft-server-discord-bot
+cd disscorders
 curl -fsSL https://ollama.com/install.sh | sh
 ollama pull llama3
 pip install -r requirements.txt
