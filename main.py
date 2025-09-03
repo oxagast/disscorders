@@ -83,10 +83,10 @@ async def imdbmovie(interaction: discord.Interaction, title: str):
         logging("Responding to command (imdb) err: movie not found.", str(interaction.user))
 
 @tree.command(name="roast", description="roasts a users", guild=discord.Object(id=GUILD_ID))
-async def diss(interaction: discord.Interaction, user: str, topic: str):
+async def diss(interaction: discord.Interaction, user: str, topic: str, data:str):
     await interaction.response.defer()
     logging(logfn, "Responding to command (diss)", str(interaction.user))
-    response = ollama.chat(model="llama3", messages=[{"role": "user", "content": f" you are a roast bot, roast this user: {user} on {topic}"}])
+    response = ollama.chat(model="llama3", messages=[{"role": "user", "content": f" you are a roast bot, roast this user: {user} on {topic} using this data: {data}"}])
     output = response["message"]["content"]
     await interaction.followup.send(output)
 
