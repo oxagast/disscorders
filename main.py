@@ -1,18 +1,20 @@
 #!/usr/bin/python3
 import os
+import imdb
+import base64
 import discord
 import time as t
-import base64
-import imdb
-from contextlib import suppress
 import configparser
+from contextlib import suppress
 from discord.ext import commands
 from discord import app_commands, Interaction, Embed
+
+# Setup Credentials
 botconfig = configparser.ConfigParser()
 botconfig.read('conf.ini')
-# Setup Credentials
 BOT_TOKEN = botconfig.get('API', 'apitoken')
 GUILD_ID = botconfig.getint('API', 'guildid')
+
 # Setup
 intents = discord.Intents.all()
 client = discord.Client(intents=intents)
