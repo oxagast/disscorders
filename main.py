@@ -1,20 +1,19 @@
 #!/usr/bin/python3
 import os
 import imdb
-import ollama
 import base64
+import ollama
 import discord
-import time
 import time as t
+import random a r
 import configparser
 from contextlib import suppress
 from discord.ext import commands
 from discord import app_commands, Interaction, Embed
 
-
 def logging(logfile, logstr, usern):
     with open(logfile, "a") as file:
-        file.write(str(time.time()) + " " + logstr + " from " + usern + "\n")
+        file.write(str(t.time()) + " " + logstr + " from " + usern + "\n")
 
 # Setup Credentials
 botconfig = configparser.ConfigParser()
@@ -51,7 +50,6 @@ async def ping(interaction: discord.Interaction):
     latency = client.latency * 1000  # Convert to ms
     logging(logfn, "Responding to command (ping)", str(interaction.user))
     await interaction.response.send_message(f'Pong! `{latency:.2f}ms`', ephemeral=True)
-
 
 @tree.command(name="eb64", description="Encodes Base64", guild=discord.Object(id=GUILD_ID))
 async def base64e(interaction: discord.Interaction, message_text: str):
@@ -93,7 +91,3 @@ async def diss(interaction: discord.Interaction, user: str, topic: str):
     await interaction.followup.send(output)
 
 client.run(BOT_TOKEN)
-
-
-
-
