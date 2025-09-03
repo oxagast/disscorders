@@ -47,6 +47,7 @@ async def base64d(interaction: discord.Interaction, message_text: str):
 
 @tree.command(name="imdb", description="Pulls movie info from ImDB", guild=discord.Object(id=GUILD_ID))
 async def imdbmovie(interaction: discord.Interaction, title: str):
+    await interaction.response.defer()
     print(f"Responding to command (imdb).")
     ia = imdb.IMDb()
     iasearch = ia.search_movie(title)
@@ -57,14 +58,14 @@ async def imdbmovie(interaction: discord.Interaction, title: str):
         try:
             synopsis = str(movie['synopsis'][0].replace("\n", "")[:lnlen])
         except Exception:
-            await interaction.response.send_message("Server under heavy load or movie not found!")
+            await interaction.followup.send("Server under heavy load or movie not found!")
         try:
-            await interaction.response.send_message("ImDB: " + movie['title'] + ": Year " + str(movie['year']) + " - " + synopsis + "...", ephemeral=True)
+            await interaction.followup.send("ImDB: " + movie['title'] + ": Year " + str(movie['year']) + " - " + synopsis + "...", ephemeral=True)
         except Exception:
 #            print("Responding to command (imdb) err: movie not found.")
-            await interaction.response.send_message("Server under heavy load or movie not found!")
+            await interaction.followup.send("Server under heavy load or movie not found!")
     else:
-        await interaction.response.send_message("Server under heavy load or movie not found!")
+        await interaction.followup.send("Server under heavy load or movie not found!")
 
 client.run(BOT_TOKEN)
 
