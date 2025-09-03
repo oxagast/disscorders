@@ -34,11 +34,21 @@ async def on_ready():
     logging(logfn, f"Bot is ready.  Logged in as {client.user} (ID: {client.user.id})", "self")
     await tree.sync(guild=discord.Object(id=GUILD_ID))
 
+@client.event
+async def on_interaction(interaction: discord.Interaction):
+    if interaction.type == discord.InteractionType.application_command:
+        print(f"{interaction.user} has use /{interaction.type} command")
+        rand_int = r.randint(1, 10)
+        if rand_int == 1:
+            embed = discord.Embed(title="About The Bot", color=discord.Color.dark_green())
+            embed.add_field(name="Who it is by?", value="Its a joint effort by Oxagast and Vesteria_", inline=False)
+            embed.set_footer(text="Thanks for using our bot!")
+            await interaction.user.send(embed=embed)
+
 # Commands
 @tree.command(name="ping", description="sends ping of bot", guild=discord.Object(id=GUILD_ID))
 async def ping(interaction: discord.Interaction):
     latency = client.latency * 1000  # Convert to ms
-    print(f"Responding to command (ping).")
     logging(logfn, "Responding to command (ping)", str(interaction.user))
     await interaction.response.send_message(f'Pong! `{latency:.2f}ms`', ephemeral=True)
 
@@ -47,7 +57,6 @@ async def ping(interaction: discord.Interaction):
 async def base64e(interaction: discord.Interaction, message_text: str):
     data = message_text.encode("utf-8")
     b64encoded = base64.b64encode(data)
-    print(f"Responding to command (eb64).")
     logging(logfn, "Responding to command (eb64)", str(interaction.user))
     await interaction.response.send_message("Encoded base64: " + b64encoded.decode('utf-8'), ephemeral=True)
 
@@ -55,14 +64,12 @@ async def base64e(interaction: discord.Interaction, message_text: str):
 async def base64d(interaction: discord.Interaction, message_text: str):
     data = message_text.encode("utf-8")
     b64decoded = base64.b64decode(data)
-    print(f"Responding to command (db64).")
     logging(logfn, "Responding to command (db64)", str(interaction.user))
     await interaction.response.send_message("Decoded base64: " + b64decoded.decode('utf-8'), ephemeral=True)
 
 @tree.command(name="imdb", description="Pulls movie info from ImDB", guild=discord.Object(id=GUILD_ID))
 async def imdbmovie(interaction: discord.Interaction, title: str):
     await interaction.response.defer()
-    print(f"Responding to command (imdb).")
     logging(logfn, "Responding to command (imdb)", str(interaction.user))
     ia = imdb.IMDb()
     iasearch = ia.search_movie(title)
@@ -80,7 +87,6 @@ async def imdbmovie(interaction: discord.Interaction, title: str):
 @tree.command(name="roast", description="roasts a users", guild=discord.Object(id=GUILD_ID))
 async def diss(interaction: discord.Interaction, user: str, topic: str):
     await interaction.response.defer()
-    print("Responding to command (diss).")
     logging(logfn, "Responding to command (diss)", str(interaction.user))
     response = ollama.chat(model="llama3", messages=[{"role": "user", "content": f" you are a roast bot, roast this user: {user} on {topic}"}])
     output = response["message"]["content"]
