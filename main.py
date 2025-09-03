@@ -5,7 +5,7 @@ import base64
 import ollama
 import discord
 import time as t
-import random a r
+import random as r
 import configparser
 from contextlib import suppress
 from discord.ext import commands
