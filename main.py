@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 import os
 import imdb
+import ollama
 import base64
 import discord
 import time as t
@@ -68,6 +69,13 @@ async def imdbmovie(interaction: discord.Interaction, title: str):
             await interaction.followup.send("Server under heavy load or movie not found!")
     else:
         await interaction.followup.send("Server under heavy load or movie not found!")
+
+@tree.command(name="roast", description="roasts a users", guild=discord.Object(id=GUILD_ID))
+async def diss(interaction: discord.Interaction, user: str, topic: str):
+    await interaction.response.defer()
+    response = ollama.chat(model="llama3", messages=[{"role": "user", "content": f" you are a roast bot, roast this user: {user} on {topic}"}])
+    output = response["message"]["content"]
+    await interaction.followup.send(output)
 
 client.run(BOT_TOKEN)
 
