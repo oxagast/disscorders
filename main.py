@@ -13,7 +13,7 @@ from discord import app_commands, Interaction, Embed
 
 def logging(logfile, logstr, usern):
     with open(logfile, "a") as file:
-        file.write(str(t.time()) + " " + logstr + " from " + usern + "\n")
+        file.write(str(int(round(t.time() * 1000))) + " " + logstr + " from " + usern + "\n")
 
 # Setup Credentials
 botconfig = configparser.ConfigParser()
