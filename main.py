@@ -5,9 +5,9 @@ import base64
 import ollama
 import discord
 import time as t
+import threading
 import random as r
 import configparser
-import threading
 from contextlib import suppress
 from discord.ext import commands
 from discord import app_commands, Interaction, Embed
