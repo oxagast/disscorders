@@ -7,34 +7,52 @@ import discord
 import time as t
 import random as r
 import configparser
+import threading
 from contextlib import suppress
 from discord.ext import commands
 from discord import app_commands, Interaction, Embed
 
+totreqs = 0
+startt = t.perf_counter()
+
 def logging(logfile, logstr, usern):
     with open(logfile, "a") as file:
         file.write(str(int(round(t.time() * 1000))) + " " + logstr + " from " + usern + "\n")
+
+def heartbeat():
+    while True:
+        t.sleep(10) # 5 minutes between haertbeats
+        logging(logfn, "Requests handled: " + str(totreqs) + " Total uptime: " + str(round(t.perf_counter() - startt, 1)) + " sec", "self") 
 
 # Setup Credentials
 botconfig = configparser.ConfigParser()
 botconfig.read('conf.ini')
 BOT_TOKEN = botconfig.get('API', 'apitoken')
 GUILD_ID = botconfig.getint('API', 'guildid')
+guildidstr = str(GUILD_ID)
 TRUNCATE_LEN = botconfig.getint('GENERAL', 'trunclen')
 LOGF = botconfig.get('GENERAL', 'logfile')
 logfn = LOGF
 intents = discord.Intents.all()
 client = discord.Client(intents=intents)
 tree = discord.app_commands.CommandTree(client)
+hb = threading.Thread(target=heartbeat, args=())
+hb.start()
+
 
 @client.event
 async def on_ready():
     print(f"Bot is ready. Logged in as {client.user} (ID: {client.user.id})")
     logging(logfn, f"Bot is ready.  Logged in as {client.user} (ID: {client.user.id})", "self")
+    logging(logfn, "API Token: " + BOT_TOKEN[0:4] + "..." + BOT_TOKEN[len(BOT_TOKEN)-4:len(BOT_TOKEN)], "self")
+    logging(logfn, "Guild: " + str(GUILD_ID)[0:4] + "..." + str(GUILD_ID)[len(str(GUILD_ID))-4:len(str(GUILD_ID))], "self")
+    logging(logfn, "Logging to file: " + logfn, "self")
     await tree.sync(guild=discord.Object(id=GUILD_ID))
 
 @client.event
 async def on_interaction(interaction: discord.Interaction):
+    global totreqs
+    totreqs += 1
     if interaction.type == discord.InteractionType.application_command:
         print(f"{interaction.user} has use /{interaction.type} command")
         rand_int = r.randint(1, 10)
