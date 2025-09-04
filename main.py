@@ -21,7 +21,7 @@ def logging(logfile, logstr, usern):
 
 def heartbeat():
     while True:
-        t.sleep(10) # 5 minutes between haertbeats
+        t.sleep(300) # 5 minutes between haertbeats
         logging(logfn, "Requests handled: " + str(totreqs) + " Total uptime: " + str(round(t.perf_counter() - startt, 1)) + " sec", "self") 
 
 # Setup Credentials
