@@ -54,7 +54,7 @@ async def on_interaction(interaction: discord.Interaction):
     global totreqs
     totreqs += 1
     if interaction.type == discord.InteractionType.application_command:
-        print(f"{interaction.user} has use /{interaction.type} command")
+        print(f"{interaction.user} has used /{interaction.command.name} command")
         rand_int = r.randint(1, 10)
         if rand_int == 1:
             embed = discord.Embed(title="About The Bot", color=discord.Color.dark_green())
