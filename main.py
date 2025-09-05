@@ -102,10 +102,10 @@ async def imdbmovie(interaction: discord.Interaction, title: str):
 
 @tree.command(name="roast", description="roasts a users", guild=discord.Object(id=GUILD_ID))
 async def diss(interaction: discord.Interaction, user: str, topic: str):
-    await interaction.response.defer()
+    await interaction.response.defer(thinking=True)
     logging(logfn, "Responding to command (diss)", str(interaction.user))
     response = ollama.chat(model="llama3", messages=[{"role": "user", "content": f" you are a roast bot, roast this user: {user} on {topic}"}])
-    output = response["message"]["content"]
+    output = response["message"]["content"] if "message" in response else str(response)
     await interaction.followup.send(output)
 
 client.run(BOT_TOKEN)
