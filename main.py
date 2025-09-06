@@ -2,6 +2,7 @@
 import os
 import imdb
 import base64
+import inspect
 import ollama
 import discord
 import time as t
@@ -22,16 +23,27 @@ def logging(logfile, logstr, usern):
 def heartbeat():
     while True:
         t.sleep(300) # 5 minutes between haertbeats
-        logging(logfn, "Requests handled: " + str(totreqs) + " Total uptime: " + str(round(t.perf_counter() - startt, 1)) + " sec", "self") 
+        logging(logfn, "Requests handled: " + str(totreqs) + " Total uptime: " + str(convtime(round(t.perf_counter() - startt, 1))) + " sec", "self") 
+
+def convtime(seconds):
+    seconds = seconds % (24 * 3600)
+    hour = seconds // 3600
+    seconds %= 3600
+    minutes = seconds // 60
+    seconds %= 60
+    return "%d:%02d:%02d" % (hour, minutes, seconds)
+
 
 # Setup Credentials
 botconfig = configparser.ConfigParser()
 botconfig.read('conf.ini')
+BOT_VERSION = "v0.1.8"
 BOT_TOKEN = botconfig.get('API', 'apitoken')
 GUILD_ID = botconfig.getint('API', 'guildid')
 guildidstr = str(GUILD_ID)
 TRUNCATE_LEN = botconfig.getint('GENERAL', 'trunclen')
 LOGF = botconfig.get('GENERAL', 'logfile')
+# internal vars
 logfn = LOGF
 intents = discord.Intents.all()
 client = discord.Client(intents=intents)
@@ -47,6 +59,7 @@ async def on_ready():
     logging(logfn, "API Token: " + BOT_TOKEN[0:4] + "..." + BOT_TOKEN[len(BOT_TOKEN)-4:len(BOT_TOKEN)], "self")
     logging(logfn, "Guild: " + str(GUILD_ID)[0:4] + "..." + str(GUILD_ID)[len(str(GUILD_ID))-4:len(str(GUILD_ID))], "self")
     logging(logfn, "Logging to file: " + logfn, "self")
+    logging(logfn, "Requests handled: " + str(totreqs) + " Total uptime: " + str(convtime(round(t.perf_counter() - startt, 1))) + " sec", "self")
     await tree.sync(guild=discord.Object(id=GUILD_ID))
 
 @client.event
@@ -66,27 +79,27 @@ async def on_interaction(interaction: discord.Interaction):
 @tree.command(name="ping", description="sends ping of bot", guild=discord.Object(id=GUILD_ID))
 async def ping(interaction: discord.Interaction):
     latency = client.latency * 1000  # Convert to ms
-    logging(logfn, "Responding to command (ping)", str(interaction.user))
+    logging(logfn, f"Responding to command ({inspect.currentframe().f_code.co_name})", str(interaction.user))
     await interaction.response.send_message(f'Pong! `{latency:.2f}ms`', ephemeral=True)
 
 @tree.command(name="eb64", description="Encodes Base64", guild=discord.Object(id=GUILD_ID))
 async def base64e(interaction: discord.Interaction, message_text: str):
     data = message_text.encode("utf-8")
     b64encoded = base64.b64encode(data)
-    logging(logfn, "Responding to command (eb64)", str(interaction.user))
+    logging(logfn, f"Responding to command ({inspect.currentframe().f_code.co_name})", str(interaction.user))
     await interaction.response.send_message("Encoded base64: " + b64encoded.decode('utf-8'), ephemeral=True)
 
 @tree.command(name="db64", description="Decodes Base64", guild=discord.Object(id=GUILD_ID))
 async def base64d(interaction: discord.Interaction, message_text: str):
     data = message_text.encode("utf-8")
     b64decoded = base64.b64decode(data)
-    logging(logfn, "Responding to command (db64)", str(interaction.user))
+    logging(logfn, f"Responding to command ({inspect.currentframe().f_code.co_name})", str(interaction.user))
     await interaction.response.send_message("Decoded base64: " + b64decoded.decode('utf-8'), ephemeral=True)
 
 @tree.command(name="imdb", description="Pulls movie info from ImDB", guild=discord.Object(id=GUILD_ID))
 async def imdbmovie(interaction: discord.Interaction, title: str):
     await interaction.response.defer()
-    logging(logfn, "Responding to command (imdb)", str(interaction.user))
+    logging(logfn, f"Responding to command ({inspect.currentframe().f_code.co_name})", str(interaction.user))
     ia = imdb.IMDb()
     iasearch = ia.search_movie(title)
     if iasearch:
@@ -98,12 +111,12 @@ async def imdbmovie(interaction: discord.Interaction, title: str):
         print("Responding to command (imdb) err: movie not found.")
     else:
         await interaction.followup.send("Server under heavy load or movie not found!", ephemeral=True)
-        logging("Responding to command (imdb) err: movie not found.", str(interaction.user))
+        logging(f"Responding to command ({inspect.currentframe().f_code.co_name}) err: movie not found.", str(interaction.user))
 
 @tree.command(name="roast", description="roasts a users", guild=discord.Object(id=GUILD_ID))
 async def diss(interaction: discord.Interaction, user: str, topic: str):
     await interaction.response.defer(thinking=True)
-    logging(logfn, "Responding to command (diss)", str(interaction.user))
+    logging(logfn, f"Responding to command ({inspect.currentframe().f_code.co_name})", str(interaction.user))
     response = ollama.chat(model="llama3", messages=[{"role": "user", "content": f" you are a roast bot, roast this user: {user} on {topic}"}])
     output = response["message"]["content"] if "message" in response else str(response)
     await interaction.followup.send(output)
