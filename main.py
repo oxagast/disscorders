@@ -1,12 +1,12 @@
 #!/usr/bin/python3
 import os
 import imdb
+import ollama
 import base64
 import inspect
-import ollama
 import discord
-import time as t
 import threading
+import time as t
 import random as r
 import configparser
 from contextlib import suppress
