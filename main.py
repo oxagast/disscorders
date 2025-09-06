@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 import os
+import sys
 import imdb
 import ollama
 import base64
@@ -12,7 +13,7 @@ import configparser
 from contextlib import suppress
 from discord.ext import commands
 from discord import app_commands, Interaction, Embed
-
+from queue import Queue
 totreqs = 0
 startt = t.perf_counter()
 
@@ -20,8 +21,12 @@ def logging(logfile, logstr, usern):
     with open(logfile, "a") as file:
         file.write(str(int(round(t.time() * 1000))) + " " + logstr + " from " + usern + "\n")
 
-def heartbeat():
+def heartbeat(q, st):
     while True:
+        qmsg = q.get() 
+        if qmsg == "STOP":
+            break
+        q.task_done()
         t.sleep(300) # 5 minutes between haertbeats
         logging(logfn, "Requests handled: " + str(totreqs) + " Total uptime: " + str(convtime(round(t.perf_counter() - startt, 1))) + " sec", "self")
 
@@ -43,12 +48,14 @@ GUILD_ID = botconfig.getint('API', 'guildid')
 guildidstr = str(GUILD_ID)
 TRUNCATE_LEN = botconfig.getint('GENERAL', 'trunclen')
 LOGF = botconfig.get('GENERAL', 'logfile')
+st = 30
 # internal vars
 logfn = LOGF
 intents = discord.Intents.all()
 client = discord.Client(intents=intents)
 tree = discord.app_commands.CommandTree(client)
-hb = threading.Thread(target=heartbeat, args=())
+q = Queue()
+hb = threading.Thread(target=heartbeat, args=(q, st))
 hb.start()
 
 
@@ -61,6 +68,19 @@ async def on_ready():
     logging(logfn, "Logging to file: " + logfn, "self")
     logging(logfn, "Requests handled: " + str(totreqs) + " Total uptime: " + str(convtime(round(t.perf_counter() - startt, 1))) + " sec", "self")
     await tree.sync(guild=discord.Object(id=GUILD_ID))
+    guild = client.get_guild(GUILD_ID)
+    for member in guild.members:
+        if member.bot:
+            if member.status == discord.Status.online:
+                botname = str(client.user).split('#', 1)
+                if member.name == str(botname[0]):
+                    print("Bot already logged in!")
+                    logging(logfn, "Another bot instance is online! Quitting to avoid collisions!", "self")
+                    q.put("STOP")
+                    hb.join()
+                    print("Quitting!")
+                    os._exit(1)
+
 
 @client.event
 async def on_interaction(interaction: discord.Interaction):
