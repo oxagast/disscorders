@@ -23,7 +23,7 @@ def logging(logfile, logstr, usern):
 def heartbeat():
     while True:
         t.sleep(300) # 5 minutes between haertbeats
-        logging(logfn, "Requests handled: " + str(totreqs) + " Total uptime: " + str(convtime(round(t.perf_counter() - startt, 1))) + " sec", "self") 
+        logging(logfn, "Requests handled: " + str(totreqs) + " Total uptime: " + str(convtime(round(t.perf_counter() - startt, 1))) + " sec", "self")
 
 def convtime(seconds):
     seconds = seconds % (24 * 3600)
@@ -98,8 +98,9 @@ async def base64d(interaction: discord.Interaction, message_text: str):
 
 @tree.command(name="imdb", description="Pulls movie info from ImDB", guild=discord.Object(id=GUILD_ID))
 async def imdbmovie(interaction: discord.Interaction, title: str):
-    await interaction.response.defer()
+    await interaction.response.defer(thinking=True)
     logging(logfn, f"Responding to command ({inspect.currentframe().f_code.co_name})", str(interaction.user))
+
     ia = imdb.IMDb()
     iasearch = ia.search_movie(title)
     if iasearch:
@@ -107,11 +108,20 @@ async def imdbmovie(interaction: discord.Interaction, title: str):
         ia.update(movie) # Retrieve full details for the movie
         lnlen = TRUNCATE_LEN - 3
         synopsis = str(movie['synopsis'][0].replace("\n", "")[:lnlen])
-        await interaction.followup.send("ImDB: " + movie['title'] + ": Year " + str(movie['year']) + " - " + synopsis + "...", ephemeral=True)
-        print("Responding to command (imdb) err: movie not found.")
+        title_part = movie['title']
+        year_part = str(movie['year'])
+        synopsis_part = synopsis + "..."
+        poster_url = movie.get("full-size cover url")
+        embed = discord.Embed(title=f"About The Movie: {title_part}, {year_part}", color=discord.Color.dark_green())
+        embed.add_field(name="Description:", value=synopsis_part, inline=False)
+        if poster_url:
+            embed.set_image(url=poster_url)
+        embed.set_footer(text="Thanks for using our bot!")
+        await interaction.followup.send(embed=embed)
     else:
         await interaction.followup.send("Server under heavy load or movie not found!", ephemeral=True)
         logging(f"Responding to command ({inspect.currentframe().f_code.co_name}) err: movie not found.", str(interaction.user))
+        print("Responding to command (imdb) err: movie not found.")
 
 @tree.command(name="roast", description="roasts a users", guild=discord.Object(id=GUILD_ID))
 async def diss(interaction: discord.Interaction, user: str, topic: str):
