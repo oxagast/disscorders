@@ -134,8 +134,7 @@ async def imdbmovie(interaction: discord.Interaction, title: str):
         poster_url = movie.get("full-size cover url")
         embed = discord.Embed(title=f"About The Movie: {title_part}, {year_part}", color=discord.Color.dark_green())
         embed.add_field(name="Description:", value=synopsis_part, inline=False)
-        if poster_url:
-            embed.set_image(url=poster_url)
+        embed.set_image(url=poster_url)
         embed.set_footer(text="Thanks for using our bot!")
         await interaction.followup.send(embed=embed)
     else:
