@@ -79,7 +79,7 @@ async def on_ready():
                     q.put("STOP")
                     hb.join()
                     print("Quitting!")
-                    os._exit(1)
+                    await client.close()
 
 
 @client.event
