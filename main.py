@@ -71,6 +71,7 @@ async def on_ready():
 
 @client.event
 async def on_connect():
+    t.sleep(2)
     guild = client.get_guild(GUILD_ID)
     for member in guild.members:
         if member.bot:
