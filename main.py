@@ -68,6 +68,9 @@ async def on_ready():
     logging(logfn, "Logging to file: " + logfn, "self")
     logging(logfn, "Requests handled: " + str(totreqs) + " Total uptime: " + str(convtime(round(t.perf_counter() - startt, 1))) + " sec", "self")
     await tree.sync(guild=discord.Object(id=GUILD_ID))
+
+@client.event
+async def on_connect():
     guild = client.get_guild(GUILD_ID)
     for member in guild.members:
         if member.bot:
@@ -80,7 +83,6 @@ async def on_ready():
                     hb.join()
                     print("Quitting!")
                     await client.close()
-
 
 @client.event
 async def on_interaction(interaction: discord.Interaction):
