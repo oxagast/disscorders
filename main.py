@@ -41,10 +41,11 @@ def convtime(seconds):
     return "%d:%02d:%02d" % (hour, minutes, seconds)
 
 def sighandler(sig, frame):
+    print("\nCleaning up and exiting...")
     global lockfile
     q.put("STOP")
+    logging(logfn, "Shutting down bot.  Total runtime: " + str(convtime(round(t.perf_counter() - startt, 1))), "self")
     os.remove(lockfile)
-    print("Signal received. Cleaning up and exiting...")
     sys.exit(0)
 
 
@@ -101,6 +102,8 @@ async def on_connect():
                             q.put("STOP")
                             hb.join()
                             print("Quitting!")
+                            os.remove(lockfile)
+                            q.put("STOP")
                             await client.close()
 
 @client.event
