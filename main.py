@@ -6,10 +6,12 @@ import ollama
 import base64
 import inspect
 import discord
+import signal
 import threading
 import time as t
 import random as r
 import configparser
+from filelock import Timeout, FileLock
 from contextlib import suppress
 from discord.ext import commands
 from discord import app_commands, Interaction, Embed
@@ -38,6 +40,12 @@ def convtime(seconds):
     seconds %= 60
     return "%d:%02d:%02d" % (hour, minutes, seconds)
 
+def sighandler(sig, frame):
+    global lockfile
+    print("Signal received. Cleaning up and exiting...")
+    os.remove(lockfile)
+    sys.exit(0)
+
 
 # Setup Credentials
 botconfig = configparser.ConfigParser()
@@ -49,6 +57,7 @@ guildidstr = str(GUILD_ID)
 TRUNCATE_LEN = botconfig.getint('GENERAL', 'trunclen')
 LOGF = botconfig.get('GENERAL', 'logfile')
 st = 30
+lockfile = "bot.lock"
 # internal vars
 logfn = LOGF
 intents = discord.Intents.all()
@@ -57,6 +66,7 @@ tree = discord.app_commands.CommandTree(client)
 q = Queue()
 hb = threading.Thread(target=heartbeat, args=(q, st))
 hb.start()
+signal.signal(signal.SIGINT, sighandler)
 
 
 @client.event
@@ -71,19 +81,26 @@ async def on_ready():
 
 @client.event
 async def on_connect():
-    t.sleep(2)
+    global lockfile
+    t.sleep(3)
     guild = client.get_guild(GUILD_ID)
-    for member in guild.members:
-        if member.bot:
-            if member.status == discord.Status.online:
-                botname = str(client.user).split('#', 1)
-                if member.name == str(botname[0]):
-                    print("Bot already logged in!")
-                    logging(logfn, "Another bot instance is online! Quitting to avoid collisions!", "self")
-                    q.put("STOP")
-                    hb.join()
-                    print("Quitting!")
-                    await client.close()
+    if os.path.exists(lockfile):
+        print("Bot already running on this machine!")
+        logging(logfn, "Another bot instance is running! Quitting to avoid collisions!", "self")
+        os._exit(1)
+    else:
+        with FileLock(lockfile):
+            for member in guild.members:
+                if member.bot:
+                    if member.status == discord.Status.online:
+                        botname = str(client.user).split('#', 1)
+                        if member.name == str(botname[0]):
+                            print("Bot already logged in!")
+                            logging(logfn, "Another bot instance is online! Quitting to avoid collisions!", "self")
+                            q.put("STOP")
+                            hb.join()
+                            print("Quitting!")
+                            await client.close()
 
 @client.event
 async def on_interaction(interaction: discord.Interaction):
