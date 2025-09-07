@@ -42,8 +42,9 @@ def convtime(seconds):
 
 def sighandler(sig, frame):
     global lockfile
-    print("Signal received. Cleaning up and exiting...")
+    q.put("STOP")
     os.remove(lockfile)
+    print("Signal received. Cleaning up and exiting...")
     sys.exit(0)
 
 
