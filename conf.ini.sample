@@ -1,23 +1,49 @@
+# conf.ini sample file for disscorders.
+#
 # This is a SAMPLE config file, and the listed values will not
 # work on a production bot!  Please change the below values to
 # your specific environment's config before running the bot.
 
 [API]
 
+##
 # This is your API token for discord.  Required.
+##
 apitoken = ACEzP4....EUA4eR
 
+##
 # This is is for the GUILD ID of your server. It is required.
+##
 guildid = 1234567891011121314
 
 [GENERAL]
 
+##
 # This option specifies what length to truncate bot output to.
 # When a line exceeds this length, it is cut at the below number,
 # minus three, and three dots are added, post output.
+##
 trunclen = 660
 
+##
 # This option specifies where the log file should be saved.  
 # It is always appended to, and the timestamp is in unix epoch
 # format.
+##
 logfile = bot.log
+
+##
+# This is the location of the lockfile the bot creates to
+# ensure multiple instances are not running simultaniously.
+# The location should be writable by your user.  To do this
+# run:
+# sudo mkdir -p /var/run/disscorders
+# chown username:staff /var/run/disscorders
+##
+locklocation = /var/run/disscorders/bot.lock
+
+##
+# The heartbeat interval (in seconds!)  Default is 300, or 5
+#  minutes.
+##
+heatbeat = 300

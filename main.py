@@ -29,7 +29,7 @@ def heartbeat(q, st):
         if qmsg == "STOP":
             break
         q.task_done()
-        t.sleep(300) # 5 minutes between haertbeats
+        t.sleep(st) # 5 minutes between haertbeats
         logging(logfn, "Requests handled: " + str(totreqs) + " Total uptime: " + str(convtime(round(t.perf_counter() - startt, 1))) + " sec", "self")
 
 def convtime(seconds):
@@ -40,7 +40,7 @@ def convtime(seconds):
     seconds %= 60
     return "%d:%02d:%02d" % (hour, minutes, seconds)
 
-def sighandler(sig, frame):
+def shutdown():
     print("\nCleaning up and exiting...")
     global lockfile
     q.put("STOP")
@@ -49,17 +49,33 @@ def sighandler(sig, frame):
     sys.exit(0)
 
 
-# Setup Credentials
+
+def sighandler(sig, frame):
+    shutdown()
+
 botconfig = configparser.ConfigParser()
-botconfig.read('conf.ini')
-BOT_VERSION = "v0.1.8"
+if len(sys.argv) - 1 == 1:
+    if os.path.exists(sys.argv[1]):
+        conffn = sys.argv[1]
+        botconfig.read(conffn)
+    else:
+        print("Config file doesn't exist!  Falling back to default.")
+        botconfig.read('conf.ini')
+elif len(sys.argv) - 1 > 1:
+    print("Too many arguments! Quitting!")
+    exit(1)
+else:
+    botconfig.read('conf.ini')
+# Setup Credentials
+BOT_VERSION = "v0.1.9"
 BOT_TOKEN = botconfig.get('API', 'apitoken')
 GUILD_ID = botconfig.getint('API', 'guildid')
 guildidstr = str(GUILD_ID)
 TRUNCATE_LEN = botconfig.getint('GENERAL', 'trunclen')
 LOGF = botconfig.get('GENERAL', 'logfile')
-st = 30
-lockfile = "bot.lock"
+st = botconfig.getint('GENERAL', 'heartbeat')
+lockfile = botconfig.get('GENERAL', 'locklocation')
+
 # internal vars
 logfn = LOGF
 intents = discord.Intents.all()
@@ -84,32 +100,32 @@ async def on_ready():
 @client.event
 async def on_connect():
     global lockfile
-    t.sleep(3)
+    t.sleep(1)
     guild = client.get_guild(GUILD_ID)
-    if os.path.exists(lockfile):
+    if os.path.exists(lockfile): # if the lockfile is present
         print("Bot already running on this machine!")
         logging(logfn, "Another bot instance is running! Quitting to avoid collisions!", "self")
         os._exit(1)
     else:
-        with FileLock(lockfile):
+        with FileLock(lockfile): # create lockfile for duration
             for member in guild.members:
                 if member.bot:
                     if member.status == discord.Status.online:
-                        botname = str(client.user).split('#', 1)
-                        if member.name == str(botname[0]):
+                        botname = str(client.user).split('#', 1) # split on the hash
+                        if member.name == str(botname[0]):  # get the username
                             print("Bot already logged in!")
                             logging(logfn, "Another bot instance is online! Quitting to avoid collisions!", "self")
                             q.put("STOP")
                             hb.join()
                             print("Quitting!")
                             os.remove(lockfile)
-                            q.put("STOP")
-                            await client.close()
+                            q.put("STOP") # send this to the hb worker thread
+                            await client.close() # close discord conn
 
 @client.event
 async def on_interaction(interaction: discord.Interaction):
-    global totreqs
-    totreqs += 1
+    global totreqs # total requests
+    totreqs += 1 # increment each req
     if interaction.type == discord.InteractionType.application_command:
         print(f"{interaction.user} has used /{interaction.command.name} command")
         rand_int = r.randint(1, 10)
