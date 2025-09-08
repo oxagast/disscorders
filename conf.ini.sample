@@ -47,3 +47,8 @@ locklocation = /var/run/disscorders/bot.lock
 #  minutes.
 ##
 heartbeat = 300
+
+##
+# Cooldown interval (in seconds!) Default is 10
+##
+cooldown = 10
