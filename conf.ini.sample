@@ -46,4 +46,4 @@ locklocation = /var/run/disscorders/bot.lock
 # The heartbeat interval (in seconds!)  Default is 300, or 5
 #  minutes.
 ##
-heatbeat = 300
+heartbeat = 300
