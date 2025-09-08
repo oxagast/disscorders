@@ -189,6 +189,7 @@ async def diss(interaction: discord.Interaction, user: str, topic: str):
     output = response["message"]["content"] if "message" in response else str(response)
     await interaction.followup.send(output)
 
+# Error Handling
 @diss.error
 async def diss(interaction: discord.Interaction, error: app_commands.AppCommandError):
     if isinstance(error, app_commands.CommandOnCooldown):
