@@ -173,7 +173,7 @@ async def imdbmovie(interaction: discord.Interaction, title: str):
         embed = discord.Embed(title=f"About The Movie: {title_part}, {year_part}", color=discord.Color.dark_green())
         embed.add_field(name="Description:", value=synopsis_part, inline=False)
         embed.set_image(url=poster_url)
-        embed.set_footer(text="Thanks for using our bot!")
+        embed.set_footer(text="Thanks for using our bot!") # Dear Github, I would like to know away to add the rating here but everything I have tried did not work. Please help me fix it
         await interaction.followup.send(embed=embed)
     else:
         await interaction.followup.send("Server under heavy load or movie not found!", ephemeral=True)
