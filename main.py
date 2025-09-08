@@ -181,11 +181,11 @@ async def imdbmovie(interaction: discord.Interaction, title: str):
         print("Responding to command (imdb) err: movie not found.")
 
 @tree.command(name="roast", description="roasts a users", guild=discord.Object(id=GUILD_ID))
-@app_commands.checks.cooldown(1, 10.0, key=lambda i: (i.user.id,))
+@app_commands.checks.cooldown(1, cooldown, key=lambda i: (i.user.id,))
 async def diss(interaction: discord.Interaction, user: str, topic: str):
     await interaction.response.defer(thinking=True)
     logging(logfn, f"Responding to command ({inspect.currentframe().f_code.co_name})", str(interaction.user))
-    response = ollama.chat(model="llama3", messages=[{"role": "user", "content": f" you are a roast bot, roast this user: {user} on {topic}"}])
+    response = await asyncio.to_thread(ollama.chat, model="llama3", messages=[{"role": "user", "content": f"you are a roast bot, roast this user: {user} on {topic}"}])
     output = response["message"]["content"] if "message" in response else str(response)
     await interaction.followup.send(output)
 
