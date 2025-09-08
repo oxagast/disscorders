@@ -3,19 +3,20 @@ import os
 import sys
 import imdb
 import ollama
+import signal
 import base64
 import inspect
 import discord
-import signal
 import threading
 import time as t
 import random as r
 import configparser
-from filelock import Timeout, FileLock
+from queue import Queue
 from contextlib import suppress
 from discord.ext import commands
+from filelock import Timeout, FileLock
 from discord import app_commands, Interaction, Embed
-from queue import Queue
+
 totreqs = 0
 startt = t.perf_counter()
 
@@ -25,7 +26,7 @@ def logging(logfile, logstr, usern):
 
 def heartbeat(q, st):
     while True:
-        qmsg = q.get() 
+        qmsg = q.get()
         if qmsg == "STOP":
             break
         q.task_done()
@@ -47,8 +48,6 @@ def shutdown():
     logging(logfn, "Shutting down bot.  Total runtime: " + str(convtime(round(t.perf_counter() - startt, 1))), "self")
     os.remove(lockfile)
     sys.exit(0)
-
-
 
 def sighandler(sig, frame):
     shutdown()
@@ -85,7 +84,6 @@ q = Queue()
 hb = threading.Thread(target=heartbeat, args=(q, st))
 hb.start()
 signal.signal(signal.SIGINT, sighandler)
-
 
 @client.event
 async def on_ready():
@@ -183,11 +181,17 @@ async def imdbmovie(interaction: discord.Interaction, title: str):
         print("Responding to command (imdb) err: movie not found.")
 
 @tree.command(name="roast", description="roasts a users", guild=discord.Object(id=GUILD_ID))
+@app_commands.checks.cooldown(1, 10.0, key=lambda i: (i.user.id,))
 async def diss(interaction: discord.Interaction, user: str, topic: str):
     await interaction.response.defer(thinking=True)
     logging(logfn, f"Responding to command ({inspect.currentframe().f_code.co_name})", str(interaction.user))
     response = ollama.chat(model="llama3", messages=[{"role": "user", "content": f" you are a roast bot, roast this user: {user} on {topic}"}])
     output = response["message"]["content"] if "message" in response else str(response)
     await interaction.followup.send(output)
+
+@diss.error
+async def diss(interaction: discord.Interaction, error: app_commands.AppCommandError):
+    if isinstance(error, app_commands.CommandOnCooldown):
+        await interaction.response.send_message(f"⏳ Slow down! Try again in `{error.retry_after:.1f}` seconds.", ephemeral=True)
 
 client.run(BOT_TOKEN)
