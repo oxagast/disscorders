@@ -1,4 +1,4 @@
-imdbpy>=2023.9.0
+cinemagoer>=0.0.1
 ollama>=0.0.1
 discord.py>=2.6.0
 filelock>=3.12.0
