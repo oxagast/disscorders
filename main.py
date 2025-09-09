@@ -1,17 +1,18 @@
 #!/usr/bin/python3
 import os
 import sys
-import imdb
 import ollama
 import signal
 import base64
 import inspect
 import discord
+import asyncio
 import threading
 import time as t
 import random as r
 import configparser
 from queue import Queue
+from imdb import Cinemagoer
 from contextlib import suppress
 from discord.ext import commands
 from filelock import Timeout, FileLock
@@ -74,6 +75,7 @@ TRUNCATE_LEN = botconfig.getint('GENERAL', 'trunclen')
 LOGF = botconfig.get('GENERAL', 'logfile')
 st = botconfig.getint('GENERAL', 'heartbeat')
 lockfile = botconfig.get('GENERAL', 'locklocation')
+cooldown = botconfig.get('GENERAL', 'cooldown')
 
 # internal vars
 logfn = LOGF
@@ -118,7 +120,7 @@ async def on_connect():
                             print("Quitting!")
                             os.remove(lockfile)
                             q.put("STOP") # send this to the hb worker thread
-                            await client.close() # close discord conn
+                            #await client.close() # close discord conn
 
 @client.event
 async def on_interaction(interaction: discord.Interaction):
@@ -159,13 +161,18 @@ async def imdbmovie(interaction: discord.Interaction, title: str):
     await interaction.response.defer(thinking=True)
     logging(logfn, f"Responding to command ({inspect.currentframe().f_code.co_name})", str(interaction.user))
 
-    ia = imdb.IMDb()
+    ia = Cinemagoer()
     iasearch = ia.search_movie(title)
     if iasearch:
         movie = iasearch[0]
         ia.update(movie) # Retrieve full details for the movie
         lnlen = TRUNCATE_LEN - 3
-        synopsis = str(movie['synopsis'][0].replace("\n", "")[:lnlen])
+        plots = movie.get('plot')
+        if plots:
+            synopsis = str(plots[0].replace("\n", "")[:lnlen]) + "..."
+        else:
+            synopsis = "No plot available."
+
         title_part = movie['title']
         year_part = str(movie['year'])
         synopsis_part = synopsis + "..."
