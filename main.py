@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+import re
 import os
 import sys
 import ollama
@@ -7,6 +8,7 @@ import base64
 import inspect
 import discord
 import asyncio
+import requests
 import threading
 import time as t
 import random as r
@@ -172,7 +174,11 @@ async def imdbmovie(interaction: discord.Interaction, title: str):
             synopsis = str(plots[0].replace("\n", "")[:lnlen]) + "..."
         else:
             synopsis = "No plot available."
-
+        url = f'https://www.imdb.com/title/tt{movie.movieID}/ratings/'
+        headers = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:142.0) Gecko/20100101 Firefox/142.0"}
+        response = requests.get(url, headers=headers)
+        match = re.search(r'"aggregateRating":\s*([\d.]+)', response.text)
+        rating = match.group(1)
         title_part = movie['title']
         year_part = str(movie['year'])
         synopsis_part = synopsis + "..."
@@ -180,7 +186,7 @@ async def imdbmovie(interaction: discord.Interaction, title: str):
         embed = discord.Embed(title=f"About The Movie: {title_part}, {year_part}", color=discord.Color.dark_green())
         embed.add_field(name="Description:", value=synopsis_part, inline=False)
         embed.set_image(url=poster_url)
-        embed.set_footer(text="Thanks for using our bot!") # Dear Github, I would like to know away to add the rating here but everything I have tried did not work. Please help me fix it
+        embed.set_footer(text=f"⭐{rating}/10")
         await interaction.followup.send(embed=embed)
     else:
         await interaction.followup.send("Server under heavy load or movie not found!", ephemeral=True)
