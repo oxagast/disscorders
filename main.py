@@ -14,6 +14,7 @@ import time as t
 import random as r
 import configparser
 from queue import Queue
+from typing import Optional
 from imdb import Cinemagoer
 from contextlib import suppress
 from discord.ext import commands
@@ -122,7 +123,7 @@ async def on_connect():
                             print("Quitting!")
                             os.remove(lockfile)
                             q.put("STOP") # send this to the hb worker thread
-                            #await client.close() # close discord conn
+                            await client.close() # close discord conn
 
 @client.event
 async def on_interaction(interaction: discord.Interaction):
@@ -195,12 +196,23 @@ async def imdbmovie(interaction: discord.Interaction, title: str):
 
 @tree.command(name="roast", description="roasts a users", guild=discord.Object(id=GUILD_ID))
 @app_commands.checks.cooldown(1, cooldown, key=lambda i: (i.user.id,))
-async def diss(interaction: discord.Interaction, user: str, topic: str):
+async def diss(interaction: discord.Interaction, topic: str, member: Optional[discord.Member] = None ):
     await interaction.response.defer(thinking=True)
     logging(logfn, f"Responding to command ({inspect.currentframe().f_code.co_name})", str(interaction.user))
-    response = await asyncio.to_thread(ollama.chat, model="llama3", messages=[{"role": "user", "content": f"you are a roast bot, roast this user: {user} on {topic}"}])
-    output = response["message"]["content"] if "message" in response else str(response)
+
+    if topic and member:
+        response = await asyncio.to_thread(ollama.chat, model="seangustavson/RoastLlama:", messages=[{"role":"system","content":"You are a savage roast bot. Do not hold back — be brutally honest, over-the-top, and ruthless. Use creative insults, sarcasm, and dark humor."},{"role":"user","content":f"Roast {member} about {topic}."}])
+        output = response["message"]["content"] if "message" in response else str(response)
+
+    elif topic:
+        response = await asyncio.to_thread(ollama.chat, model="seangustavson/RoastLlama", messages=[{"role":"system","content":"You are a savage roast bot. Do not hold back — be brutally honest, over-the-top, and ruthless. Use creative insults, sarcasm, and dark humor."},{"role":"user","content":f"Roast {topic}."}])
+        output = response["message"]["content"] if "message" in response else str(response)
+
+    else:
+        output = 'Please at least one option'
+
     await interaction.followup.send(output)
+
 
 # Error Handling
 @diss.error
