@@ -201,11 +201,11 @@ async def diss(interaction: discord.Interaction, topic: str, member: Optional[di
     logging(logfn, f"Responding to command ({inspect.currentframe().f_code.co_name})", str(interaction.user))
 
     if topic and member:
-        response = await asyncio.to_thread(ollama.chat, model="seangustavson/RoastLlama:", messages=[{"role":"system","content":"You are a savage roast bot. Do not hold back — be brutally honest, over-the-top, and ruthless. Use creative insults, sarcasm, and dark humor."},{"role":"user","content":f"Roast {member} about {topic}."}])
+        response = await asyncio.to_thread(ollama.chat, model="llama3", messages=[{"role":"system","content":"You are a savage roast bot. Do not hold back — be brutally honest, over-the-top, and ruthless. Use creative insults, sarcasm, and dark humor."},{"role":"user","content":f"Roast {member} about {topic}."}])
         output = response["message"]["content"] if "message" in response else str(response)
 
     elif topic:
-        response = await asyncio.to_thread(ollama.chat, model="seangustavson/RoastLlama", messages=[{"role":"system","content":"You are a savage roast bot. Do not hold back — be brutally honest, over-the-top, and ruthless. Use creative insults, sarcasm, and dark humor."},{"role":"user","content":f"Roast {topic}."}])
+        response = await asyncio.to_thread(ollama.chat, model="llama3", messages=[{"role":"system","content":"You are a savage roast bot. Do not hold back — be brutally honest, over-the-top, and ruthless. Use creative insults, sarcasm, and dark humor."},{"role":"user","content":f"Roast {topic}."}])
         output = response["message"]["content"] if "message" in response else str(response)
 
     else:
