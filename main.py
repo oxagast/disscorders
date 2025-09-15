@@ -209,7 +209,7 @@ async def diss(interaction: discord.Interaction, topic: str, member: Optional[di
         output = 'Please at least one option'
     await interaction.followup.send(output)
 
-tree.command(name="llm", description="runs an llm", guild=discord.Object(id=GUILD_ID))
+@tree.command(name="llm", description="runs an llm", guild=discord.Object(id=GUILD_ID))
 @app_commands.checks.cooldown(1, cooldown, key=lambda i: (i.user.id,))
 async def llm(interaction: discord.Interaction, prompt: str):
     await interaction.response.defer(thinking=True)
