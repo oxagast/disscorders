@@ -7,3 +7,5 @@ transformers
 accelerate
 safetensors
 torch
+omegaconf
+safetensors
