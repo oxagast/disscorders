@@ -199,24 +199,34 @@ async def imdbmovie(interaction: discord.Interaction, title: str):
 async def diss(interaction: discord.Interaction, topic: str, member: Optional[discord.Member] = None ):
     await interaction.response.defer(thinking=True)
     logging(logfn, f"Responding to command ({inspect.currentframe().f_code.co_name})", str(interaction.user))
-
     if topic and member:
         response = await asyncio.to_thread(ollama.chat, model="llama2-uncensored", messages=[{"role":"system","content":"You are a savage roast bot. Do not hold back — be over-the-top, and ruthless. Use creative insults, sarcasm, and lots of very dark humor."},{"role":"user","content":f"Roast {member} about {topic}."}])
         output = response["message"]["content"] if "message" in response else str(response)
-
     elif topic:
         response = await asyncio.to_thread(ollama.chat, model="llama2-uncensored", messages=[{"role":"system","content":"You are a savage roast bot. Do not hold back — be over-the-top, and ruthless. Use creative insults, sarcasm, and lots of very dark humor."},{"role":"user","content":f"Roast {topic}."}])
         output = response["message"]["content"] if "message" in response else str(response)
-
     else:
         output = 'Please at least one option'
+    await interaction.followup.send(output)
 
+tree.command(name="llm", description="runs an llm", guild=discord.Object(id=GUILD_ID))
+@app_commands.checks.cooldown(1, cooldown, key=lambda i: (i.user.id,))
+async def llm(interaction: discord.Interaction, prompt: str):
+    await interaction.response.defer(thinking=True)
+    logging(logfn, f"Responding to command ({inspect.currentframe().f_code.co_name})", str(interaction.user))
+    response = await asyncio.to_thread(ollama.chat, model="llama2-uncensored", messages=[{"role":"system","content":"You are a an llm inside of a discord bot, do what ever the user ask for."},{"role":"user","content":f"{prompt}"}])
+    output = response["message"]["content"] if "message" in response else str(response)
     await interaction.followup.send(output)
 
 
 # Error Handling
 @diss.error
 async def diss(interaction: discord.Interaction, error: app_commands.AppCommandError):
+    if isinstance(error, app_commands.CommandOnCooldown):
+        await interaction.response.send_message(f"⏳ Slow down! Try again in `{error.retry_after:.1f}` seconds.", ephemeral=True)
+
+@llm.error
+async def llm(interaction: discord.Interaction, error: app_commands.AppCommandError):
     if isinstance(error, app_commands.CommandOnCooldown):
         await interaction.response.send_message(f"⏳ Slow down! Try again in `{error.retry_after:.1f}` seconds.", ephemeral=True)
 
