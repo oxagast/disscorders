@@ -2,10 +2,3 @@ cinemagoer
 ollama
 discord.py
 filelock
-diffusers
-transformers==4.44.2
-accelerate
-safetensors
-torch
-omegaconf
-safetensors
