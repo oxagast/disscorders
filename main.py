@@ -255,7 +255,7 @@ async def sticky_enable(interaction: discord.Interaction, title: str, descriptio
     global sticky, sticky_channel, sticky_id, sticky_title, sticky_description, idx
     sticky = True
     sticky_channel = channel.replace("<#", "").replace(">", "")
-    sticky_id = None  # no sticky message sent yet
+    sticky_id = None
     sticky_title = title
     sticky_description = description
     await interaction.followup.send('Sticky message is enabled', ephemeral=True)
