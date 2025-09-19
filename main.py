@@ -2,6 +2,8 @@
 import re
 import os
 import sys
+import uuid
+
 import ollama
 import signal
 import base64
@@ -20,6 +22,7 @@ from contextlib import suppress
 from discord.ext import commands
 from filelock import Timeout, FileLock
 from discord import app_commands, Interaction, Embed
+from selenium.webdriver.common.actions import interaction
 
 totreqs = 0
 startt = t.perf_counter()
@@ -80,7 +83,7 @@ st = botconfig.getint('GENERAL', 'heartbeat')
 lockfile = botconfig.get('GENERAL', 'locklocation')
 cooldown = botconfig.get('GENERAL', 'cooldown')
 
-# internal vars
+# Internal Vars
 logfn = LOGF
 intents = discord.Intents.all()
 client = discord.Client(intents=intents)
@@ -89,6 +92,15 @@ q = Queue()
 hb = threading.Thread(target=heartbeat, args=(q, st))
 hb.start()
 signal.signal(signal.SIGINT, sighandler)
+
+# Setup Sticky Messages
+global sticky, sticky_channel, sticky_id, sticky_title, sticky_description
+sticky = False
+sticky_channel = ""
+sticky_id = "0"
+sticky_title = ""
+sticky_description = ""
+idx = ""
 
 @client.event
 async def on_ready():
@@ -123,7 +135,7 @@ async def on_connect():
                             print("Quitting!")
                             os.remove(lockfile)
                             q.put("STOP") # send this to the hb worker thread
-                            await client.close() # close discord conn
+                            #await client.close() # close discord conn
 
 @client.event
 async def on_interaction(interaction: discord.Interaction):
@@ -137,6 +149,26 @@ async def on_interaction(interaction: discord.Interaction):
             embed.add_field(name="Who it is by?", value="Its a joint effort by Oxagast and Vesteria_", inline=False)
             embed.set_footer(text="Thanks for using our bot!")
             await interaction.user.send(embed=embed)
+
+
+@client.event
+async def on_message(message: discord.Message):
+    global sticky, sticky_channel, sticky_id, sticky_title, sticky_description, idx
+    if message.author == client.user:
+        return
+    if sticky:
+        channel = client.get_channel(int(sticky_channel))
+        if sticky_id:
+            try:
+                message = await channel.fetch_message(int(sticky_id))
+                await message.delete()
+            except discord.NotFound:
+                pass
+        embed = discord.Embed(title=sticky_title, color=discord.Color.dark_green())
+        embed.add_field(name='', value=sticky_description, inline=False)
+        message = await channel.send(embed=embed)
+        sticky_id = message.id
+        sticky_channel = message.channel.id
 
 # Commands
 @tree.command(name="ping", description="sends ping of bot", guild=discord.Object(id=GUILD_ID))
@@ -184,7 +216,7 @@ async def imdbmovie(interaction: discord.Interaction, title: str):
         year_part = str(movie['year'])
         synopsis_part = synopsis + "..."
         poster_url = movie.get("full-size cover url")
-        embed = discord.Embed(title=f"About The Movie: {title_part}, {year_part}", color=discord.Color.dark_green())
+        embed = discord.Embed(title=f"{title_part}, {year_part}", color=discord.Color.dark_green())
         embed.add_field(name="Description:", value=synopsis_part, inline=False)
         embed.set_image(url=poster_url)
         embed.set_footer(text=f"⭐{rating}/10")
@@ -218,6 +250,21 @@ async def llm(interaction: discord.Interaction, prompt: str):
     output = response["message"]["content"] if "message" in response else str(response)
     await interaction.followup.send(output)
 
+@tree.command(name="sticky_enable", description="enables sticky messages", guild=discord.Object(id=GUILD_ID))
+async def sticky_enable(interaction: discord.Interaction, title: str, description: str, channel: str):
+    await interaction.response.defer(thinking=True)
+    global sticky, sticky_channel, sticky_id, sticky_title, sticky_description, idx
+    sticky = True
+    sticky_channel = channel.replace("<#", "").replace(">", "")
+    sticky_id = None  # no sticky message sent yet
+    sticky_title = title
+    sticky_description = description
+    await interaction.followup.send('Sticky message is enabled', ephemeral=True)
+
+@tree.command(name="sticky_disable", description="disables sticky messages", guild=discord.Object(id=GUILD_ID))
+async def sticky_disable(interaction: discord.Interaction):
+    sticky = False
+    await interaction.followup.send('Sticky message is disabled', ephemeral=True)
 
 # Error Handling
 @diss.error
