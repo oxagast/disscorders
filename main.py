@@ -3,9 +3,9 @@ import re
 import os
 import sys
 import uuid
-import ollama
 import signal
 import base64
+import ollama
 import inspect
 import discord
 import asyncio
@@ -58,6 +58,11 @@ def shutdown():
 def sighandler(sig, frame):
     shutdown()
 
+def create_pastebin(context , key):
+    paste_data = {"api_dev_key": key, "api_option": "paste", "api_paste_code": context, "api_paste_name": "Big Message Removed", "api_paste_private": "1", "api_paste_expire_date": "N"}
+    response = requests.post("https://pastebin.com/api/api_post.php", data=paste_data)
+    return response.text
+
 botconfig = configparser.ConfigParser()
 if len(sys.argv) - 1 == 1:
     if os.path.exists(sys.argv[1]):
@@ -71,10 +76,12 @@ elif len(sys.argv) - 1 > 1:
     exit(1)
 else:
     botconfig.read('conf.ini')
+
 # Setup Credentials
 BOT_VERSION = "v0.1.9"
 BOT_TOKEN = botconfig.get('API', 'apitoken')
 GUILD_ID = botconfig.getint('API', 'guildid')
+PASTEBIN_KEY = botconfig.get('API', 'pastebin_key')
 guildidstr = str(GUILD_ID)
 TRUNCATE_LEN = botconfig.getint('GENERAL', 'trunclen')
 LOGF = botconfig.get('GENERAL', 'logfile')
@@ -149,12 +156,21 @@ async def on_interaction(interaction: discord.Interaction):
             embed.set_footer(text="Thanks for using our bot!")
             await interaction.user.send(embed=embed)
 
-
 @client.event
 async def on_message(message: discord.Message):
     global sticky, sticky_channel, sticky_id, sticky_title, sticky_description, idx
     if message.author == client.user:
         return
+    if len(message.content) > 1000:
+        await message.delete()
+        if message.author.nick:
+            author = message.author.nick
+        else:
+            author = message.author.display_name
+        embed = discord.Embed(title='Big Message Deleted', color=discord.Color.dark_gold())
+        embed.add_field(name=f'Message sent by: {author}', value=create_pastebin(message.content, PASTEBIN_KEY), inline=False)
+        await message.channel.send(embed=embed)
+
     if sticky:
         channel = client.get_channel(int(sticky_channel))
         if sticky_id:
