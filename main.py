@@ -22,6 +22,7 @@ from discord.ext import commands
 from filelock import Timeout, FileLock
 from discord import app_commands, Interaction, Embed
 from selenium.webdriver.common.actions import interaction
+from stem.interpreter.help import response
 
 totreqs = 0
 startt = t.perf_counter()
@@ -280,6 +281,18 @@ async def sticky_enable(interaction: discord.Interaction, title: str, descriptio
 async def sticky_disable(interaction: discord.Interaction):
     sticky = False
     await interaction.followup.send('Sticky message is disabled', ephemeral=True)
+
+@tree.command(name="quote", description="send a random quote", guild=discord.Object(id=GUILD_ID))
+async def quote(interaction: discord.Interaction):
+    await interaction.response.defer(thinking=True)
+    try:
+        headers = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:143.0) Gecko/20100101 Firefox/143.0"}
+        response = requests.get("https://api.breakingbadquotes.xyz/v1/quotes", headers=headers)
+    except Exception as e:
+        print(e)
+    data = response.json()
+    print(data)
+    await interaction.followup.send(f'{data[0]["quote"]} - {data[0]["author"]}')
 
 # Error Handling
 @diss.error
