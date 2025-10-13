@@ -142,7 +142,7 @@ async def on_connect():
                             print("Quitting!")
                             os.remove(lockfile)
                             q.put("STOP") # send this to the hb worker thread
-                            #await client.close() # close discord conn
+                            await client.close() # close discord conn
 
 @client.event
 async def on_interaction(interaction: discord.Interaction):
